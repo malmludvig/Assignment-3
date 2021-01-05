@@ -10,48 +10,11 @@ namespace Forum
 {
     class Program
     {
-        public class User
-        {
-            private int _id = -1;
-
-            public int Id
-            {
-                get { return _id; }
-                set { if (_id == -1) _id = value; }
-
-            }
-            public string FirstName { get; set; }
-            public string LastName { get; set; }
-            public string EmailAddress { get; set; }
-        }
-
-        public class Thread
-        {
-            public int ThreadId { get; set; }
-            public string Topic { get; set; }
-            public string Text { get; set; }
-            public string UserId { get; set; }
-            public int CommentCount { get; set; }
-        }
-
-        public class Post
-        {
-            public int PostId { get; }
-            public string Text { get; set; }
-            public string UserId { get; set; }
-            public string ThreadId { get; set; }
-            public string Date { get; set; }
-            public User User { get; set; }
-            public Thread Thread { get; set; }
-        }
-
+   
         static void Main(string[] args)
         {
 
-
-            Herman HermanObject = new Herman();
-
-            SqliteThreadRepository repo = new SqliteThreadRepository();
+            var repo = new SqliteInitialization();
             repo.PrintVersion();
 
             while (true)
@@ -125,7 +88,7 @@ namespace Forum
             }
         }
 
-        public class SqliteThreadRepository
+        public class SqliteInitialization
         {
             private const string _connectionString = "Data Source=.\\Forum.db";
 
@@ -136,5 +99,51 @@ namespace Forum
                 System.Console.WriteLine(connection.ServerVersion);
             }
         }
+
+
+
+
+
+
+
+
+        public static void ListPostInThread(SqlitePostRepository repository, int threadId)
+        {
+
+            Console.WriteLine("Enter a thread ID to view all of the posts in it. ");
+            Console.Clear();
+            var thread = repository.GetThreadWithId(threadId);
+            var posts = repository.GetPostsFromThread(thread);
+            Console.WriteLine($"{thread.Topic}  \n{thread.Text}");
+            foreach (var post in posts)
+            {
+                Console.WriteLine($"{post.User.FirstName}: {post.Text}");
+            }
+            Console.WriteLine();
+        }
+
+        public static void PrintThreads(SqliteThreadRepository repository)
+        {
+            var people = repository.GetThreads();
+            foreach (var person in people)
+            {
+                Console.WriteLine("Thread id: " + person.ThreadId);
+                Console.WriteLine("Topic: " + person.Topic);
+                Console.WriteLine("Text: " + person.Text);
+                Console.WriteLine();
+            }
+        }
+
+        public static void PrintUsers(SqliteUserRepository repository)
+        {
+            var people = repository.GetUsers();
+            foreach (var person in people)
+            {
+                Console.WriteLine(person.FirstName + " " + person.LastName);
+            }
+        }
+
+
+
     }
 }
