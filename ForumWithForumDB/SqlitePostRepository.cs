@@ -47,5 +47,13 @@ namespace ForumWithForumDB
             splitOn: "UserId");
             return posts.ToList();
         }
+
+        public void AddPost(Post post)
+        {
+            using var connection = new SqliteConnection(_connectionString);
+            var sql = "INSERT INTO posts (Text,UserId,ThreadId) VALUES " +
+                $"(@Text, @UserId, @ThreadId)";
+            var result = connection.Execute(sql, post);
+        }
     }
 }
