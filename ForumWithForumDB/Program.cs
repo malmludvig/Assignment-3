@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
-using Dapper;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
+
 using ForumWithForumDB;
 
 namespace Forum
@@ -32,6 +29,7 @@ namespace Forum
 
                 if (x == "1")
                 {
+
                     Console.Clear();
                     threadRepo.GetThreads();
 
@@ -56,22 +54,29 @@ namespace Forum
                         {
 
                             Console.Clear();
-
+                                     
                             Thread newThread = new Thread();
                             Console.WriteLine("Write a topic:");
                             newThread.Topic = Console.ReadLine();
 
                             Console.WriteLine("Write a text:");
                             newThread.Text = Console.ReadLine();
+                            newThread.PostCount = 100;
 
                             threadRepo.AddThread(newThread);
+
                             Console.WriteLine("Thread added!");
 
                             continue;
                         }
 
                         int threadId = int.Parse(input);
+
+                        Console.Clear();
+                        var threadCreator = userRepo.GetPersonWithIdWhoCreatedThread(threadId);
+                        Console.WriteLine("User: " + threadCreator.FirstName);
                         ListPostInThread(postRepo, threadId);
+
 
                         while (true)
                         {
@@ -90,6 +95,7 @@ namespace Forum
 
                             if (threadInput == "1")
                             {
+                                Console.WriteLine(threadId);
 
                                 Post newPost = new Post();
                                 Console.WriteLine("Write a text:");
@@ -99,6 +105,12 @@ namespace Forum
                                 newPost.UserId = Console.ReadLine();
                                 newPost.ThreadId = threadId.ToString();
                                 postRepo.AddPost(newPost);
+
+                                var obj = threadRepo.GetThreadWithId(threadId);
+                                obj.PostCount = obj.PostCount + 1;
+                                threadRepo.UpdateThreadPostCount(obj);
+
+
                                 Console.Clear();
                                 break;
                             }
@@ -106,13 +118,42 @@ namespace Forum
                             if (threadInput == "2")
                             {
                                 Console.WriteLine("What is the ID of the post you want to edit?");
-                                string editPost = Console.ReadLine();
+                                string editPostId = Console.ReadLine();
+
+                                int editPostInt = int.Parse(editPostId);
+
+                                Post postObject = new Post();
+
+                                postObject = postRepo.GetPostWithId(editPostInt);
+
+                                Console.WriteLine("Write the new text.");
+                                string newText = Console.ReadLine();
+
+                                postObject.Text = newText;
+
+                                postRepo.UpdatePost(postObject);
+
                             }
 
                             if (threadInput == "3")
                             {
                                 Console.WriteLine("What is the ID of the post you want to delete?");
-                                string deletePost = Console.ReadLine();
+                                string deletePostId = Console.ReadLine();
+
+                                int editPostInt = int.Parse(deletePostId);
+
+                                Post postObject = new Post();
+
+                                postObject = postRepo.GetPostWithId(editPostInt);
+
+                                postRepo.DeletePost(postObject);
+
+                                var obj = threadRepo.GetThreadWithId(threadId);
+                                obj.PostCount = obj.PostCount - 1;
+                                threadRepo.UpdateThreadPostCount(obj);
+
+                                Console.Clear();
+                                break;
                             }
                         }
                     }
@@ -146,27 +187,26 @@ namespace Forum
         public static void ListPostInThread(SqlitePostRepository repository, int threadId)
         {
 
-            Console.WriteLine("Enter a thread ID to view all of the posts in it. ");
-            Console.Clear();
             var thread = repository.GetThreadWithId(threadId);
             var posts = repository.GetPostsFromThread(thread);
-            Console.WriteLine($"{thread.Topic}  \n{thread.Text}\n");
+            Console.WriteLine($"Topic: {thread.Topic}\nText: {thread.Text}\n");
             foreach (var post in posts)
             {
-                Console.WriteLine($"{post.User.FirstName}: {post.Text}");
+                Console.WriteLine($"PostId: {post.PostId} {post.User.FirstName} (UserId: {post.UserId}): {post.Text}");
             }
             Console.WriteLine();
         }
 
         public static void PrintThreads(SqliteThreadRepository repository)
         {
-            var people = repository.GetThreads();
-            foreach (var person in people)
+
+            var threads = repository.GetThreads();
+            foreach (var thread in threads)
             {
-                Console.WriteLine("Thread id: " + person.ThreadId);
-                Console.WriteLine("Topic: " + person.Topic);
-                Console.WriteLine("Text: " + person.Text);
-                Console.WriteLine();
+
+                Console.WriteLine("Thread id: " + thread.ThreadId);
+                Console.WriteLine("Topic: " + thread.Topic);
+                Console.WriteLine("Posts: " + thread.PostCount + "\n");
             }
         }
 

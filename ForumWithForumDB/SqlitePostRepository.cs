@@ -30,6 +30,13 @@ namespace ForumWithForumDB
             return connection.QuerySingle<Thread>(query, new { Id = id });
         }
 
+        public Post GetPostWithId(int id) //Parameter substitution
+        {
+            using var connection = new SqliteConnection(_connectionString);
+            var query = "SELECT * FROM Posts WHERE PostId = @Id";
+            return connection.QuerySingle<Post>(query, new { Id = id });
+        }
+
         public List<Post> GetPostsFromThread(Thread thread)
         {
             using var connection = new SqliteConnection(_connectionString);
@@ -39,7 +46,6 @@ namespace ForumWithForumDB
 
             var posts = connection.Query<Post, User, Post>(sql, (post, user) =>
             {
-                //tilldelar User i tabellen med post.user
                 post.User = user;
                 return post;
             },
@@ -54,6 +60,20 @@ namespace ForumWithForumDB
             var sql = "INSERT INTO posts (Text,UserId,ThreadId) VALUES " +
                 $"(@Text, @UserId, @ThreadId)";
             var result = connection.Execute(sql, post);
+        }
+
+        public void UpdatePost(Post post)
+        {
+            using var connection = new SqliteConnection(_connectionString);
+            var sql = $"UPDATE Posts SET Text = @Text, UserId = @UserId, ThreadId =@ThreadId WHERE PostId = @PostId";
+            connection.Execute(sql, post);
+        }
+
+        public void DeletePost(Post post)
+        {
+            using var connection = new SqliteConnection(_connectionString);
+            var sql = $"DELETE FROM Posts WHERE PostId = @PostId";
+            connection.Execute(sql, post);
         }
     }
 }

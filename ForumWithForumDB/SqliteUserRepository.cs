@@ -23,8 +23,6 @@ namespace ForumWithForumDB
         public string EmailAddress { get; set; }
     }
 
-
-
         class SqliteUserRepository
         {
 
@@ -37,12 +35,11 @@ namespace ForumWithForumDB
             return output.ToList();
         }
 
-        public void AddUser(User person)
+        public User GetPersonWithIdWhoCreatedThread(int id)
         {
             using var connection = new SqliteConnection(_connectionString);
-            var sql = "INSERT INTO Users (FirstName,Lastname,EmailAddress) VALUES " +
-                $"(@FirstName, @LastName, @EmailAddress)";
-            var result = connection.Execute(sql, person);
+            var query = "SELECT * FROM Users WHERE UserId = @UserId";
+            return connection.QuerySingle<User>(query, new { UserId = id });
         }
     }
 }
